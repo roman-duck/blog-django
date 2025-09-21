@@ -3,13 +3,16 @@
 ## Run server
 
 ```bash
-python manage.py runserver
+make run
 ```
 ## Make migration
 ```bash
-python manage.py makemigrations blog
+make migration
 ```
+
 ## Run migration
 ```bash
-python manage.py migrate
+make migrate
+```
+
 
