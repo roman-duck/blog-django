@@ -5,6 +5,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
 from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
+from django.db.models import Count
 from taggit.models import Tag
 
 DEFAULT_PAGE_NUMBER = 1
@@ -32,8 +33,14 @@ def post_detail(request, year, month, day, post):
                              published__month=month,
                              published__day=day)
     comments = post.comments.filter(active=True)
+
     form = CommentForm()
-    return render(request, 'blog/post/detail.html', {'post': post, 'comments': comments, 'form': form})
+
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.published_posts.filter(tags__in=post_tags_ids).exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', '-published')[:4]
+    
+    return render(request, 'blog/post/detail.html', {'post': post, 'comments': comments, 'form': form, 'similar_posts': similar_posts})
 
 # TODO: replace email to data from .env
 def post_share(request, post_id):
